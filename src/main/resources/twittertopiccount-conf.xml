@@ -25,7 +25,7 @@
         <value>TopicSeen topic</value>
       </list>
     </property>
-    <property name="threshold" value="4"/>
+    <property name="threshold" value="1"/>
     <property name="outputFrequencyByTimeBoundary" value="5"/>
     <property name="dispatcher" ref="forkdispatcher"/>
     <property name="outputStreamName" value="AggregatedTopicSeen"/>

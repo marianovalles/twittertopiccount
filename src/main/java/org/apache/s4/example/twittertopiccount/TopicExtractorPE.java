@@ -22,7 +22,8 @@ import org.apache.s4.dispatcher.EventDispatcher;
 import org.apache.s4.processor.AbstractPE;
 
 public class TopicExtractorPE extends AbstractPE {
-    private EventDispatcher dispatcher;
+    private String id;
+    private transient EventDispatcher dispatcher;
     private String outputStreamName;
 
     public EventDispatcher getDispatcher() {
@@ -39,6 +40,10 @@ public class TopicExtractorPE extends AbstractPE {
 
     public void setOutputStreamName(String outputStreamName) {
         this.outputStreamName = outputStreamName;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void processEvent(Status status) {
@@ -68,7 +73,7 @@ public class TopicExtractorPE extends AbstractPE {
                 continue;
             }
 
-            TopicSeen topicSeen = new TopicSeen(sb.toString().toLowerCase(), 1);
+            TopicSeen topicSeen = new TopicSeen(sb.toString().toLowerCase(), 1, status.getText(), status.getUser().getName());
             dispatcher.dispatchEvent(outputStreamName, topicSeen);
         }
     }
@@ -77,6 +82,11 @@ public class TopicExtractorPE extends AbstractPE {
     public void output() {
         // TODO Auto-generated method stub
 
+    }
+
+    @Override
+    public String getId() {
+        return this.id;
     }
 
     static class DummyDispatcher extends Dispatcher {

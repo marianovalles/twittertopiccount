@@ -17,6 +17,7 @@
  */
 package org.apache.s4.example.twittertopiccount;
 
+import org.apache.s4.ft.DefaultFileSystemStateStorage;
 import org.apache.s4.persist.Persister;
 import org.apache.s4.processor.AbstractPE;
 
@@ -33,11 +34,18 @@ import org.json.JSONObject;
 import com.google.gson.Gson;
 
 public class TopNTopicPE extends AbstractPE {
-    private Persister persister;
+	private static org.apache.log4j.Logger logger = Logger.getLogger(TopNTopicPE.class);
+	private String id;
+    private transient Persister persister;
     private int entryCount = 10;
     private Map<String, Integer> topicMap = new ConcurrentHashMap<String, Integer>();
+    private Map<String, String> tweetsMap = new ConcurrentHashMap<String, String>();
     private int persistTime;
     private String persistKey = "myapp:topNTopics";
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public Persister getPersister() {
         return persister;
@@ -70,9 +78,10 @@ public class TopNTopicPE extends AbstractPE {
     public void setPersistKey(String persistKey) {
         this.persistKey = persistKey;
     }
-
+    
     public void processEvent(TopicSeen topicSeen) {
         topicMap.put(topicSeen.getTopic(), topicSeen.getCount());
+        tweetsMap.put(topicSeen.getTopic(), topicSeen.getTweet());
     }
 
     public ArrayList<TopNEntry> getTopTopics() {
@@ -82,7 +91,7 @@ public class TopNTopicPE extends AbstractPE {
         ArrayList<TopNEntry> sortedList = new ArrayList<TopNEntry>();
 
         for (String key : topicMap.keySet()) {
-            sortedList.add(new TopNEntry(key, topicMap.get(key)));
+            sortedList.add(new TopNEntry(key, topicMap.get(key), tweetsMap.get(key)));
         }
 
         Collections.sort(sortedList);
@@ -100,8 +109,9 @@ public class TopNTopicPE extends AbstractPE {
     public void output() {
         List<TopNEntry> sortedList = new ArrayList<TopNEntry>();
 
-        for (String key : topicMap.keySet()) {
-            sortedList.add(new TopNEntry(key, topicMap.get(key)));
+        for (String key : topicMap.keySet()) {	
+        	//logger.debug(tweetsMap.get(key));
+            sortedList.add(new TopNEntry(key, topicMap.get(key), tweetsMap.get(key)));
         }
 
         Collections.sort(sortedList);
@@ -118,6 +128,7 @@ public class TopNTopicPE extends AbstractPE {
                 JSONObject jsonEntry = new JSONObject();
                 jsonEntry.put("topic", tne.getTopic());
                 jsonEntry.put("count", tne.getCount());
+                jsonEntry.put("lastTweet", tne.getTweet());
                 jsonTopN.put(jsonEntry);
             }
             message.put("topN", jsonTopN);
@@ -127,14 +138,22 @@ public class TopNTopicPE extends AbstractPE {
         }
     }
 
+    @Override
+    public String getId() {
+        return this.id;
+    }
+
     public static class TopNEntry implements Comparable<TopNEntry> {
-        public TopNEntry(String topic, int count) {
+        
+		public TopNEntry(String topic, int count, String tweet) {
             this.topic = topic;
             this.count = count;
+            this.tweet = tweet;
         }
 
         public TopNEntry() {}
-
+       
+		String tweet=null;
         String topic = null;
         int count = 0;
 
@@ -153,6 +172,13 @@ public class TopNTopicPE extends AbstractPE {
         public void setCount(int count) {
             this.count = count;
         }
+        public String getTweet() {
+			return tweet;
+		}
+
+		public void setTweet(String tweet) {
+			this.tweet = tweet;
+		}
 
         public int compareTo(TopNEntry topNEntry) {
             if (topNEntry.getCount() < this.count) {
@@ -164,7 +190,7 @@ public class TopNTopicPE extends AbstractPE {
         }
 
         public String toString() {
-            return "topic:" + topic + " count:" + count;
+            return "topic:" + topic + " count:" + count + "tweet:" + tweet;
         }
     }
 }

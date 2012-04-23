@@ -19,6 +19,8 @@ package org.apache.s4.example.twittertopiccount;
 
 public class TopicSeen {
     private String topic;
+   	private String tweet;
+    private String userid;
     private int count;
     private String reportKey;
 
@@ -26,9 +28,11 @@ public class TopicSeen {
 
     }
 
-    public TopicSeen(String topic, int count) {
+    public TopicSeen(String topic, int count, String tweet, String userid) {
         this.topic = topic;
         this.count = count;
+        this.tweet = tweet;
+        this.userid = userid;
     }
 
     public String getTopic() {
@@ -54,6 +58,21 @@ public class TopicSeen {
     public void setReportKey(String reportKey) {
         this.reportKey = reportKey;
     }
+    public String getTweet() {
+		return tweet;
+	}
+
+	public void setTweet(String tweet) {
+		this.tweet = tweet;
+	}
+
+	public String getUserid() {
+		return userid;
+	}
+
+	public void setUserid(String userid) {
+		this.userid = userid;
+	}
 
     public String toString() {
         return "{topic:" + topic + "}";

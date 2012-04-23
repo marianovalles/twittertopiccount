@@ -21,10 +21,15 @@ import org.apache.s4.dispatcher.EventDispatcher;
 import org.apache.s4.processor.AbstractPE;
 
 public class TopicCountAndReportPE extends AbstractPE {
-    private EventDispatcher dispatcher;
+    private String id;
+    private transient EventDispatcher dispatcher;
     private String outputStreamName;
     private int threshold;
     private int count;
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public EventDispatcher getDispatcher() {
         return dispatcher;
@@ -52,17 +57,24 @@ public class TopicCountAndReportPE extends AbstractPE {
 
     public void processEvent(TopicSeen topicSeen) {
         count += topicSeen.getCount();
+        TopicSeen topicSeenToSend = new TopicSeen((String) this.getKeyValue().get(0),
+                count,topicSeen.getTweet(), topicSeen.getUserid() );
+        topicSeenToSend.setReportKey("1");
+        dispatcher.dispatchEvent(outputStreamName, topicSeenToSend);
     }
 
     @Override
     public void output() {
-        if (count < threshold) {
-            return;
-        }
-        TopicSeen topicSeen = new TopicSeen((String) this.getKeyValue().get(0),
-                                            count);
-        topicSeen.setReportKey("1");
-        dispatcher.dispatchEvent(outputStreamName, topicSeen);
+//        //This is now 1 in the xml
+//    	if (count < threshold) {
+//            return;
+//        }
+        
+    }
+
+    @Override
+    public String getId() {
+        return this.id;
     }
 
 }
